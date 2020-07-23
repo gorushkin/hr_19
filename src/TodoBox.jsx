@@ -11,24 +11,23 @@ import Item from './Item.jsx';
 export default class TodoBox extends React.Component{
   constructor(props) {
     super(props);
-    this.state = { items: [], value: '' };
+    this.state = { items: [], value: '', activeList: [], finishedList: [] };
   }
 
+
   getData = async (path) => {
-    console.log('getData');
     const res = await axios.get(path);
     this.setState({ items: res.data})
   }
 
   componentDidMount() {
-    console.log('mount');
     const items = [
-      {"id":1,"text":"asdf","state":"finished"},
-      {"id":2,"text":"asdasd","state":"active"},
+      {"id":1,"text":"asdf","state":"active"},
+      {"id":2,"text":"asdasd","state":"finished"},
       {"id":3,"text":"qweqwe","state":"active"},
-    ]
-  //   this.getData(routes.tasksPath());
+    ];
     this.setState({ items });
+  //   this.getData(routes.tasksPath());
   }
 
   submitHandler = (e) => {
@@ -46,12 +45,28 @@ export default class TodoBox extends React.Component{
     this.setState({ value });
   }
 
-  renderTaskList = () => {
-    const { items } = this.state
-    if (items.length === 0) return null;
+  renderTaskList = (type) => {
+    const types = {
+      activeList: {
+        class: 'todo-active-tasks',
+        handler: () => {},
+        filter: (item) => item.state === "active",
+      },
+      finishedList: {
+        class: 'todo-finished-tasks',
+        handler: () => {},
+        filter: (item) => item.state === "finished",
+      },
+    }
+    
+    // const list = this.state[type];
+    const { items } = this.state;
+    const list = items.filter(types[type].filter);
+
+    if (list.length === 0) return null;
     return (
-      <div className="todo-active-tasks">
-        {items.sort((a, b) => (b.id - a.id)).map(item => {
+      <div className={types[type].class}>
+        {list.sort((a, b) => (b.id - a.id)).map(item => {
           return <Item key={item.id} task ={item} />
         })}
       </div>
@@ -70,7 +85,8 @@ export default class TodoBox extends React.Component{
             <button type="submit" className="btn btn-primary">add</button>
           </form>
         </div>
-        {this.renderTaskList()}
+        {this.renderTaskList('activeList')}
+        {this.renderTaskList('finishedList')}
       </div>
     )
   }
